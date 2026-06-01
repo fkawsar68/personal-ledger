@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Personal Ledger</title>
+    <!-- Native Vector Favicon (Displays in Browser Tab Offline) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Crect x='25' y='25' width='50' height='50' rx='8' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M35 38h30M35 50h30M35 62h20' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='60' cy='62' r='5' fill='%2316a34a'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --modal-overlay: rgba(15, 23, 42, 0.4);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --primary: #3b82f6;
+                --success: #22c55e;
+                --danger: #ef4444;
+                --border: #334155;
+                --modal-overlay: rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .secondary-value {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .workspace-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-neutral { background: var(--border); color: var(--text-main); }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .table-container { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover { background: var(--border); }
+
+        /* Fail-Proof Modal Display Toggles with Adaptive Scrollbars */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex !important;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh; /* Keeps modals to 85% of screen height */
+            overflow-y: auto; /* Adds custom scrollbars if content is cut off */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .hidden { display: none !important; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-primary { color: var(--primary); }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+            }
+            header, 
+            .workspace-grid > .card:first-child, 
+            .tab-nav, 
+            #specific-filter-container, 
+            #filter-start, 
+            #filter-end,
+            label,
+            button,
+            .modal {
+                display: none !important;
+            }
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .dashboard-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                margin-bottom: 20px !important;
+            }
+            .card {
+                border: 1px solid #000000 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+            .workspace-grid {
+                grid-template-columns: 1fr !important;
+            }
+            table {
+                width: 100% !important;
+                border: 1px solid #000000 !important;
+            }
+            th, td {
+                border-bottom: 1px solid #000000 !important;
+                color: #000000 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- Premium Vector Brand Logo (Renders Sharp Offline) -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 42px; height: 42px;">
+                <rect width="100" height="100" rx="22" fill="#2563eb"/>
+                <rect x="25" y="25" width="50" height="50" rx="8" fill="none" stroke="white" stroke-width="6"/>
+                <path d="M35 38h30M35 50h30M35 62h20" stroke="white" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="60" cy="62" r="5" fill="#16a34a"/>
+            </svg>
+            <div>
+                <h1 style="display: flex; align-items: center; gap: 8px;">
+                    <span data-i18n="app_title">Personal Ledger</span> <span class="badge" id="pro-badge">Free</span>
+                </h1>
+                <p id="network-status" style="color: var(--text-muted); font-size: 0.85rem;">Checking network status...</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <select id="header-lang-selector" onchange="changeLanguage(this.value)" style="width: auto; padding: 4px 8px; font-size: 0.85rem;">
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="hi">हिन्दी</option>
+                <option value="zh">中文</option>
+            </select>
+            <button class="btn-neutral" onclick="downloadAppSource()" style="font-size: 0.85rem; padding: 4px 8px;">💾 Download File</button>
+            <button class="btn-neutral" onclick="openModal('settings-modal')" style="font-size: 0.85rem; padding: 4px 8px;">⚙️ Settings</button>
+            <button class="btn-primary" id="upgrade-nav-btn" onclick="openModal('upgrade-modal')" style="font-size: 0.85rem; padding: 4px 8px;">⭐ Go Pro</button>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title" data-i18n="net_balance">Net Balance</div>
+            <div class="card-value text-primary" id="dash-balance">0.00</div>
+            <div class="secondary-value" id="dash-balance-alt">0.00</div>
+        </div>
+        <div class="card">
+            <div class="card-title" data-i18n="total_income">Total Income</div>
+            <div class="card-value text-success" id="dash-income">0.00</div>
+            <div class="secondary-value" id="dash-income-alt">0.00</div>
+        </div>
+        <div class="card">
+            <div class="card-title" data-i18n="total_expenses">Total Expenses</div>
+            <div class="card-value text-danger" id="dash-expenses">0.00</div>
+            <div class="secondary-value" id="dash-expenses-alt">0.00</div>
+        </div>
+    </div>
+
+    <div class="workspace-grid">
+        <!-- Input Form Panel -->
+        <div class="card">
+            <h3 style="margin-bottom: 16px;" data-i18n="new_entry">New Entry</h3>
+            <form onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label data-i18n="date">Date</label>
+                    <input type="date" id="entry-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="entry_type">Entry Type</label>
+                    <select id="entry-type" onchange="toggleFormFields(this.value)">
+                        <option value="expense" data-i18n="spend">Spend (Debit)</option>
+                        <option value="income" data-i18n="receive">Receive (Credit)</option>
+                    </select>
+                </div>
+
+                <div class="form-group id-person-group hidden">
+                    <label data-i18n="person">Person (Source)</label>
+                    <input type="text" id="entry-person" autocomplete="off" placeholder="Type or select name">
+                    <div id="person-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="purpose">Purpose / Category</label>
+                    <input type="text" id="entry-purpose" required autocomplete="off" placeholder="Type or select purpose">
+                    <div id="purpose-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group id-item-group">
+                    <label data-i18n="item">Spent Item Name</label>
+                    <input type="text" id="entry-item" autocomplete="off" placeholder="e.g., Rice, Fish, Soap">
+                    <div id="item-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="amount">Amount</label>
+                    <input type="number" id="entry-amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+
+                <button type="button" class="btn-primary" style="width: 100%;" onclick="submitEntryForm()" data-i18n="save_entry">Save Entry</button>
+            </form>
+        </div>
+
+        <!-- Analytical Tables Panel -->
+        <div class="card">
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-tx" onclick="switchTab('transactions')" data-i18n="all_tx">All Transactions</button>
+                <button class="tab-btn" id="tab-btn-person" onclick="switchTab('persons')" data-i18n="by_person">By Person</button>
+                <button class="tab-btn" id="tab-btn-purpose" onclick="switchTab('purposes')" data-i18n="by_purpose">By Purpose</button>
+                <button class="tab-btn" id="tab-btn-item" onclick="switchTab('items')" data-i18n="by_item">By Item</button>
+            </div>
+
+            <!-- Dynamic Filter Bar -->
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                    <label data-i18n="start_date">Start Date</label>
+                    <input type="date" id="filter-start" onchange="renderAll()">
+                </div>
+                <div style="flex: 1; min-width: 140px;">
+                    <label data-i18n="end_date">End Date</label>
+                    <input type="date" id="filter-end" onchange="renderAll()">
+                </div>
+                <div style="flex: 1; min-width: 140px;" id="specific-filter-container"></div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr id="tableHeader"></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                <button class="btn-neutral" onclick="triggerPDFPrint()" style="display: flex; align-items: center; gap: 6px;">
+                    <span data-i18n="print_pdf">🖨️ Print / PDF Statement</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Settings & Currency Control -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 16px;" data-i18n="settings">System Settings</h3>
+        
+        <div class="form-group">
+            <label data-i18n="primary_currency">Primary Currency</label>
+            <select id="setting-primary-curr" onchange="updateCurrencySymbols()"></select>
+        </div>
+
+        <div class="form-group">
+            <label data-i18n="enable_secondary">Enable Side-by-Side Secondary Currency</label>
+            <select id="setting-secondary-enabled" onchange="toggleSecondaryCurrencyView()">
+                <option value="no" data-i18n="disabled">Disabled</option>
+                <option value="yes" data-i18n="enabled">Enabled</option>
+            </select>
+        </div>
+
+        <div id="secondary-currency-settings" class="hidden">
+            <div class="form-group">
+                <label data-i18n="secondary_currency">Secondary Currency</label>
+                <select id="setting-secondary-curr" onchange="calculateCurrency()"></select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="conversion_rate">Conversion Exchange Rate</label>
+                <input type="number" id="setting-exchange-rate" step="0.0001" oninput="calculateCurrency()">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="rate-source-info"></p>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <label data-i18n="license_key">Active License Key</label>
+            <input type="text" id="setting-license-key" placeholder="Enter license key" style="margin-bottom: 8px;">
+            <button class="btn-success" onclick="activateLicense()" data-i18n="activate">Activate Key</button>
+        </div>
+
+        <!-- Safe Database Reset Action Button -->
+        <button class="btn-danger" onclick="resetDatabaseAction()" style="width: 100%; margin-top: 12px; font-size: 0.9rem;">⚠️ Clear All Database Data</button>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+            <button class="btn-neutral" onclick="closeModal('settings-modal')" data-i18n="close">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Monetization & Pro Upgrade Options -->
+<div id="upgrade-modal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 8px;">Upgrade System</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+            Unlocks unlimited account balances, automated daily exchange rates, printing/PDF statement tools, and multi-device cloud synchronization.
+        </p>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" id="modal-tab-intl" onclick="switchModalTab('intl')">International Cards</button>
+            <button class="tab-btn" id="modal-tab-bd" onclick="switchModalTab('bd')">Bangladesh (bKash/MFS/Bank)</button>
+        </div>
+
+        <!-- International Tiers: Side-by-Side Clean Stack -->
+        <div id="modal-content-intl">
+            <p style="margin-bottom: 16px; font-size: 0.95rem;">Choose your license tier. Payouts are handled securely by Lemon Squeezy.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="https://yourstore.lemonsqueezy.com/checkout-pro" target="_blank" style="text-decoration: none;">
+                    <button class="btn-primary" style="width: 100%;">Upgrade to Pro Personal — $2.99 USD</button>
+                </a>
+                <a href="https://yourstore.lemonsqueezy.com/checkout-corporate" target="_blank" style="text-decoration: none;">
+                    <button class="btn-neutral" style="width: 100%; border: 1px solid var(--primary); color: var(--primary);">Upgrade to Business Class — $4.99 USD</button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Bangladesh Tiers: Redesigned Side-by-Side Option Toggles -->
+        <div id="modal-content-bd" class="hidden">
+            <label style="margin-bottom: 8px; display: block;">Select Upgrade License Tier</label>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <!-- Styled select option cards -->
+                <button type="button" id="tier-btn-personal" class="btn-primary" style="flex: 1;" onclick="setLocalTier('personal')">
+                    Pro Personal<br>99 BDT
+                </button>
+                <button type="button" id="tier-btn-corporate" class="btn-neutral" style="flex: 1;" onclick="setLocalTier('corporate')">
+                    Business Class<br>199 BDT
+                </button>
+            </div>
+
+            <p style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-muted);">
+                Send the chosen amount <strong id="dynamic-price-label">99 BDT (including cash-out fee)</strong> directly to any of our verified accounts below:
+            </p>
+            <div style="background: var(--bg-color); padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 16px; border: 1px dashed var(--border); line-height: 1.6;">
+                📱 <strong>bKash / Nagad / Rocket (Personal):</strong> +8801846434305<br>
+                🏦 <strong>BRAC Bank PLC:</strong><br>
+                &bull; Account Name: FAISAL IBN KAWSAR<br>
+                &bull; Account Number: 1551203851995001<br>
+                &bull; Branch: UTTARA JASHIM UDDIN AV BR<br>
+                &bull; Routing Number: 060260385<br>
+                &bull; SWIFT Code: BRAKBDDH
+            </div>
+
+            <form onsubmit="event.preventDefault(); sendWhatsAppVerification();">
+                <div class="form-group">
+                    <label>Your Phone / Reference ID</label>
+                    <input type="text" id="pay-phone" placeholder="e.g., 01812345678" required>
+                </div>
+                <div class="form-group">
+                    <label>Transaction ID (TxnID)</label>
+                    <input type="text" id="pay-txnid" placeholder="e.g., A102BC4D" required>
+                </div>
+                <button type="submit" class="btn-success" style="width: 100%;">Verify & WhatsApp Activation Request</button>
+            </form>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+            <button class="btn-neutral" onclick="closeModal('upgrade-modal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 7-Language Offline Dictionary (Ensures zero crashes across browser languages)
+    const TRANSLATIONS = {
+        en: {
+            app_title: "Personal Ledger",
+            net_balance: "Net Balance",
+            total_income: "Total Income",
+            total_expenses: "Total Expenses",
+            new_entry: "New Entry",
+            date: "Date",
+            person: "Person / Source",
+            purpose: "Purpose / Category",
+            amount: "Amount",
+            receive: "Receive (Credit)",
+            spend: "Spend (Debit)",
+            save_entry: "Save Entry",
+            all_tx: "All Transactions",
+            by_person: "By Person",
+            by_purpose: "By Purpose",
+            by_item: "By Item",
+            entry_type: "Entry Type",
+            item: "Spent Item Name",
+            start_date: "Start Date",
+            end_date: "End Date",
+            settings: "System Settings",
+            primary_currency: "Primary Currency",
+            enable_secondary: "Enable Side-by-Side Secondary Currency",
+            disabled: "Disabled",
+            enabled: "Enabled",
+            secondary_currency: "Secondary Currency",
+            conversion_rate: "Conversion Exchange Rate",
+            license_key: "Active License Key",
+            activate: "Activate Key",
+            close: "Close",
+            print_pdf: "🖨️ Print / PDF Statement"
+        },
+        bn: {
+            app_title: "ব্যক্তিগত লেজার",
+            net_balance: "মোট ব্যালেন্স",
+            total_income: "মোট আয়",
+            total_expenses: "মোট ব্যয়",
+            new_entry: "নতুন এন্ট্রি",
+            date: "তারিখ",
+            person: "ব্যক্তির নাম / উৎস",
+            purpose: "উদ্দেশ্য / ক্যাটাগরি",
+            amount: "পরিমাণ",
+            receive: "জমা (ক্রেডিট)",
+            spend: "খরচ (ডেবিট)",
+            save_entry: "এন্ট্রি সেভ করুন",
+            all_tx: "সকল লেনদেন",
+            by_person: "ব্যক্তি ভিত্তিক",
+            by_purpose: "উদ্দেশ্য ভিত্তিক",
+            by_item: "আইটেম ভিত্তিক",
+            entry_type: "লেনদেনের ধরণ",
+            item: "খরচ হওয়া আইটেমের নাম",
+            start_date: "শুরুর তারিখ",
+            end_date: "শেষের তারিখ",
+            settings: "সিস্টেম সেটিংস",
+            primary_currency: "প্রধান মুদ্রা",
+            enable_secondary: "পাশাপাশি দ্বিতীয় মুদ্রা দেখান",
+            disabled: "নিষ্ক্রিয়",
+            enabled: "সক্রিয়",
+            secondary_currency: "দ্বিতীয় মুদ্রা",
+            conversion_rate: "রূপান্তর হার",
+            license_key: "লাইসেন্স কি",
+            activate: "সক্রিয় করুন",
+            close: "বন্ধ করুন",
+            print_pdf: "🖨️ প্রিন্ট / পিডিএফ স্টেটমেন্ট"
+        },
+        es: {
+            app_title: "Contabilidad",
+            net_balance: "Saldo Neto",
+            total_income: "Ingresos Totales",
+            total_expenses: "Gastos Totales",
+            new_entry: "Nueva Entrada",
+            date: "Fecha",
+            person: "Persona / Origen",
+            purpose: "Propósito / Categoría",
+            amount: "Monto",
+            receive: "Recibir",
+            spend: "Gastar",
+            save_entry: "Guardar",
+            all_tx: "Transacciones",
+            by_person: "Por Persona",
+            by_purpose: "Por Propósito",
+            by_item: "Por Artículo",
+            entry_type: "Tipo de Entrada",
+            item: "Nombre del Artículo",
+            start_date: "Fecha Inicio",
+            end_date: "Fecha Fin",
+            settings: "Ajustes",
+            primary_currency: "Moneda Principal",
+            enable_secondary: "Habilitar Moneda Secundaria",
+            disabled: "Deshabilitado",
+            enabled: "Habilitado",
+            secondary_currency: "Moneda Secundaria",
+            conversion_rate: "Tasa de Cambio",
+            license_key: "Clave de Licencia",
+            activate: "Activar Clave",
+            close: "Cerrar",
+            print_pdf: "🖨️ Imprimir / PDF"
+        },
+        fr: {
+            app_title: "Grand Livre",
+            net_balance: "Solde Net",
+            total_income: "Revenu Total",
+            total_expenses: "Dépenses Totales",
+            new_entry: "Nouvelle Entrée",
+            date: "Date",
+            person: "Personne / Source",
+            purpose: "But / Catégorie",
+            amount: "Montant",
+            receive: "Recevoir",
+            spend: "Dépenser",
+            save_entry: "Enregistrer",
+            all_tx: "Transactions",
+            by_person: "Par Personne",
+            by_purpose: "Par But",
+            by_item: "Par Article",
+            entry_type: "Type d'Entrée",
+            item: "Nom de l'Article",
+            start_date: "Date Début",
+            end_date: "Date Fin",
+            settings: "Paramètres",
+            primary_currency: "Devise Principale",
+            enable_secondary: "Activer Devise Secondaire",
+            disabled: "Désactivé",
+            enabled: "Activé",
+            secondary_currency: "Devise Secondaire",
+            conversion_rate: "Taux de Change",
+            license_key: "Clé de Licence",
+            activate: "Activer la Clé",
+            close: "Fermer",
+            print_pdf: "🖨️ Imprimer / PDF"
+        },
+        ar: {
+            app_title: "الدفتر المالي",
+            net_balance: "الرصيد الصافي",
+            total_income: "إجمالي الدخل",
+            total_expenses: "إجمالي المصروفات",
+            new_entry: "إدخل جديد",
+            date: "التاريخ",
+            person: "الشخص / المصدر",
+            purpose: "الغرض / الفئة",
+            amount: "المبلغ",
+            receive: "استلام",
+            spend: "صرف",
+            save_entry: "حفظ الإدخال",
+            all_tx: "جميع المعاملات",
+            by_person: "حسب الشخص",
+            by_purpose: "حسب الغرض",
+            by_item: "حسب العنصر",
+            entry_type: "نوع الإدخال",
+            item: "اسم العنصر",
+            start_date: "تاريخ البدء",
+            end_date: "تاريخ الانتهاء",
+            settings: "الإعدادات",
+            primary_currency: "العملة الأساسية",
+            enable_secondary: "تمكين عملة ثانوية",
+            disabled: "معطل",
+            enabled: "مفعل",
+            secondary_currency: "العملة الثانوية",
+            conversion_rate: "سعر الصرف",
+            license_key: "مفتاح الترخيص",
+            activate: "تفعيل المفتاح",
+            close: "إغلاق",
+            print_pdf: "🖨️ طباعة / PDF"
+        },
+        hi: {
+            app_title: "बहीखाता",
+            net_balance: "कुल शेष",
+            total_income: "कुल आय",
+            total_expenses: "कुल व्यय",
+            new_entry: "नई प्रविष्टि",
+            date: "तारीख",
+            person: "व्यक्ति / स्रोत",
+            purpose: "उद्देश्य / श्रेणी",
+            amount: "राशि",
+            receive: "प्राप्त करें",
+            spend: "खर्च करें",
+            save_entry: "प्रविष्टि सहेजें",
+            all_tx: "सभी लेनदेन",
+            by_person: "व्यक्ति अनुसार",
+            by_purpose: "उद्देश्य अनुसार",
+            by_item: "वस्तु अनुसार",
+            entry_type: "प्रविष्टि प्रकार",
+            item: "वस्तु का नाम",
+            start_date: "प्रारंभिक तिथि",
+            end_date: "अंतिम तिथि",
+            settings: "सेटिंग्स",
+            primary_currency: "प्राथमिक मुद्रा",
+            enable_secondary: "सहायक मुद्रा सक्षम करें",
+            disabled: "अक्षम",
+            enabled: "सक्षम",
+            secondary_currency: "सहायक मुद्रा",
+            conversion_rate: "विनिमय दर",
+            license_key: "लाइसेंस कुंजी",
+            activate: "कुंजी सक्रिय करें",
+            close: "बंद करें",
+            print_pdf: "🖨️ प्रिंट / पीडीएफ"
+        },
+        zh: {
+            app_title: "记账簿",
+            net_balance: "净余额",
+            total_income: "总收入",
+            total_expenses: "总支出",
+            new_entry: "新增项目",
+            date: "日期",
+            person: "人名 / 来源",
+            purpose: "用途 / 类别",
+            amount: "金额",
+            receive: "收入",
+            spend: "支出",
+            save_entry: "保存项目",
+            all_tx: "所有交易",
+            by_person: "按成员",
+            by_purpose: "按用途",
+            by_item: "按物品",
+            entry_type: "账目类型",
+            item: "物品名称",
+            start_date: "开始日期",
+            end_date: "结束日期",
+            settings: "设置",
+            primary_currency: "主货币",
+            enable_secondary: "启用辅助比对",
+            disabled: "已禁用",
+            enabled: "已启用",
+            secondary_currency: "辅助货币",
+            conversion_rate: "汇率比",
+            license_key: "许可证激活",
+            activate: "激活码",
+            close: "关闭",
+            print_pdf: "🖨️ 打印 / PDF 导出"
+        }
+    };
+
+    const CURRENCY_MAP = { en: 'USD', bn: 'BDT', es: 'EUR', fr: 'EUR', ar: 'SAR', hi: 'INR', zh: 'CNY' };
+
+    let state = {
+        transactions: [],
+        persons: [],
+        purposes: [],
+        items: [],
+        isPro: false,
+        language: 'en',
+        primaryCurrency: 'USD',
+        secondaryEnabled: 'no',
+        secondaryCurrency: 'BDT',
+        manualExchangeRate: 117.00,
+        lastUpdatedRate: 117.00,
+        rateTimestamp: null
+    };
+
+    let activeTab = 'transactions';
+    let currentNetworkStatus = 'offline';
+    let selectedLocalTier = 'personal'; // Default local selection state
+
+    const CURRENCIES = {
+        "USD": "$", "BDT": "৳", "EUR": "€", "GBP": "£", "INR": "₹", 
+        "CAD": "C$", "AUD": "A$", "JPY": "¥", "SAR": "SR", "CNY": "¥"
+    };
+
+    // Robust Initialization & Legacy DB Schema Sanitizer
+    window.addEventListener('DOMContentLoaded', async () => {
+        const storedState = localStorage.getItem('hybrid_ledger_state_items');
+        if (storedState) {
+            try {
+                state = { ...state, ...JSON.parse(storedState) };
+            } catch (e) {
+                console.error("Database loading failure", e);
+            }
+        } else {
+            const oldState = localStorage.getItem('hybrid_ledger_state');
+            if (oldState) {
+                try {
+                    const parsed = JSON.parse(oldState);
+                    state = { ...state, ...parsed, items: [] };
+                    saveDatabase();
+                } catch(err) {}
+            } else {
+                const systemLang = navigator.language.split('-')[0];
+                if (TRANSLATIONS[systemLang]) {
+                    state.language = systemLang;
+                    state.primaryCurrency = CURRENCY_MAP[systemLang] || 'USD';
+                }
+            }
+        }
+
+        // Defensive Array Assertions (Avoids runtime undefined failures)
+        if (!state.transactions || !Array.isArray(state.transactions)) state.transactions = [];
+        if (!state.persons || !Array.isArray(state.persons)) state.persons = [];
+        if (!state.purposes || !Array.isArray(state.purposes)) state.purposes = [];
+        if (!state.items || !Array.isArray(state.items)) state.items = [];
+
+        populateCurrencyDropdowns();
+        applyPreferences();
+        applyCurrentLanguage();
+        await evaluateConnection();
+        
+        setupInputAutocomplete('entry-person', 'person-suggestions', 'persons');
+        setupInputAutocomplete('entry-purpose', 'purpose-suggestions', 'purposes');
+        setupInputAutocomplete('entry-item', 'item-suggestions', 'items');
+        
+        document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+        toggleFormFields('expense'); 
+        
+        // Render local pricing buttons correctly on load
+        setLocalTier('personal');
+
+        renderAll();
+    });
+
+    // Native Window Modal Control Engines
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    // High-visibility toggles for Local Bangladeshi Upgrade options (Replaces hidden select dropdowns)
+    function setLocalTier(tier) {
+        selectedLocalTier = tier;
+        const btnPersonal = document.getElementById('tier-btn-personal');
+        const btnCorporate = document.getElementById('tier-btn-corporate');
+        const label = document.getElementById('dynamic-price-label');
+
+        if (tier === 'personal') {
+            btnPersonal.className = "btn-primary";
+            btnPersonal.style.flex = "1";
+            btnCorporate.className = "btn-neutral";
+            btnCorporate.style.flex = "1";
+            label.textContent = "99 BDT (including cash-out fee)";
+        } else {
+            btnPersonal.className = "btn-neutral";
+            btnPersonal.style.flex = "1";
+            btnCorporate.className = "btn-primary";
+            btnCorporate.style.flex = "1";
+            label.textContent = "199 BDT (including cash-out fee)";
+        }
+    }
+
+    function applyCurrentLanguage() {
+        if (!state.language || !TRANSLATIONS[state.language]) {
+            state.language = 'en';
+        }
+
+        const selector = document.getElementById('header-lang-selector');
+        if (selector) {
+            selector.value = state.language;
+        }
+        
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const translationKey = element.getAttribute('data-i18n');
+            const translationValue = TRANSLATIONS[state.language]?.[translationKey] || TRANSLATIONS['en'][translationKey];
+            if (translationValue) {
+                element.textContent = translationValue;
+            }
+        });
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        let p1 = 'Type or select name', p2 = 'Type or select purpose', p3 = 'e.g., Rice, Fish, Soap';
+        if (isBn) {
+            p1 = 'নাম লিখুন বা সিলেক্ট করুন'; p2 = 'উদ্দেশ্য লিখুন বা সিলেক্ট করুন'; p3 = 'যেমন- চাল, ডাল, মাছ, সাবান';
+        } else if (isEs) {
+            p1 = 'Escriba o seleccione nombre'; p2 = 'Escriba o seleccione propósito'; p3 = 'Ej. arroz, pescado';
+        } else if (isFr) {
+            p1 = 'Entrez ou sélectionnez le nom'; p2 = 'Entrez ou sélectionnez le but'; p3 = 'Ex. riz, poisson';
+        }
+
+        document.getElementById('entry-person').placeholder = p1;
+        document.getElementById('entry-purpose').placeholder = p2;
+        document.getElementById('entry-item').placeholder = p3;
+    }
+
+    function changeLanguage(langCode) {
+        if (TRANSLATIONS[langCode]) {
+            state.language = langCode;
+            applyCurrentLanguage();
+            saveDatabase();
+            renderAll();
+        }
+    }
+
+    function toggleFormFields(type) {
+        const itemGroup = document.querySelector('.id-item-group');
+        const personGroup = document.querySelector('.id-person-group');
+        
+        if (type === 'income') {
+            itemGroup.classList.add('hidden');
+            personGroup.classList.remove('hidden');
+        } else {
+            itemGroup.classList.remove('hidden');
+            personGroup.classList.add('hidden');
+        }
+    }
+
+    async function evaluateConnection() {
+        const statusElement = document.getElementById('network-status');
+        if (navigator.onLine) {
+            currentNetworkStatus = 'online';
+            statusElement.innerHTML = `🟢 Online | Auto-save active`;
+            statusElement.className = "text-success";
+            await runProExchangeSync();
+        } else {
+            currentNetworkStatus = 'offline';
+            statusElement.innerHTML = `🔴 Offline Mode | Local Storage active`;
+            statusElement.className = "text-danger";
+        }
+    }
+
+    window.addEventListener('online', evaluateConnection);
+    window.addEventListener('offline', evaluateConnection);
+
+    async function runProExchangeSync() {
+        if (!state.isPro) {
+            document.getElementById('rate-source-info').textContent = "Using local user-defined exchange conversion rates.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://open.er-api.com/v6/latest/${state.primaryCurrency}`);
+            if (response.ok) {
+                const data = await response.json();
+                const matchedRate = data.rates[state.secondaryCurrency];
+                if (matchedRate) {
+                    state.lastUpdatedRate = matchedRate;
+                    state.rateTimestamp = new Date().toLocaleDateString();
+                    document.getElementById('rate-source-info').textContent = `Auto Rates Updated on login (${state.rateTimestamp})`;
+                    if (state.secondaryEnabled === 'yes') {
+                        document.getElementById('setting-exchange-rate').value = matchedRate;
+                    }
+                    saveDatabase();
+                }
+            }
+        } catch (e) {
+            document.getElementById('rate-source-info').textContent = `Network Timeout. Fallback Rate: 1 = ${state.lastUpdatedRate}`;
+        }
+    }
+
+    function saveDatabase() {
+        localStorage.setItem('hybrid_ledger_state_items', JSON.stringify(state));
+    }
+
+    function populateCurrencyDropdowns() {
+        const pDropdown = document.getElementById('setting-primary-curr');
+        const sDropdown = document.getElementById('setting-secondary-curr');
+        
+        pDropdown.innerHTML = '';
+        sDropdown.innerHTML = '';
+
+        Object.keys(CURRENCIES).forEach(code => {
+            const opt1 = new Option(`${code} (${CURRENCIES[code]})`, code);
+            const opt2 = new Option(`${code} (${CURRENCIES[code]})`, code);
+            pDropdown.add(opt1);
+            sDropdown.add(opt2);
+        });
+    }
+
+    function applyPreferences() {
+        if (!state.primaryCurrency) state.primaryCurrency = 'USD';
+        if (!state.secondaryCurrency) state.secondaryCurrency = 'BDT';
+        if (typeof state.manualExchangeRate !== 'number') state.manualExchangeRate = 117.00;
+        if (!state.secondaryEnabled) state.secondaryEnabled = 'no';
+
+        document.getElementById('setting-primary-curr').value = state.primaryCurrency;
+        document.getElementById('setting-secondary-enabled').value = state.secondaryEnabled;
+        document.getElementById('setting-secondary-curr').value = state.secondaryCurrency;
+        document.getElementById('setting-exchange-rate').value = state.manualExchangeRate;
+
+        if (state.isPro) {
+            document.getElementById('pro-badge').textContent = "PRO";
+            document.getElementById('pro-badge').style.background = "#16a34a";
+            document.getElementById('upgrade-nav-btn').className = "hidden";
+        }
+        toggleSecondaryCurrencyView();
+    }
+
+    function updateCurrencySymbols() {
+        state.primaryCurrency = document.getElementById('setting-primary-curr').value;
+        saveDatabase();
+        renderAll();
+    }
+
+    // PDF / Printing Pro-Gated Module
+    function triggerPDFPrint() {
+        if (!state.isPro) {
+            alert(state.language === 'bn' ? 
+                "পিডিএফ এবং প্রিন্ট স্টেটমেন্ট সুবিধাটি শুধুমাত্র প্রো ব্যবহারকারীদের জন্য উপলব্ধ। আপগ্রেড করতে ক্লিক করুন।" : 
+                "Print and PDF Statement export is a Pro feature. Please upgrade to unlock statement printing!");
+            openModal('upgrade-modal');
+            return;
+        }
+        window.print();
+    }
+
+    function toggleSecondaryCurrencyView() {
+        state.secondaryEnabled = document.getElementById('setting-secondary-enabled').value;
+        const configPanel = document.getElementById('secondary-currency-settings');
+        
+        if (state.secondaryEnabled === 'yes') {
+            configPanel.classList.remove('hidden');
+        } else {
+            configPanel.classList.add('hidden');
+        }
+        saveDatabase();
+        renderAll();
+    }
+
+    function calculateCurrency() {
+        state.secondaryCurrency = document.getElementById('setting-secondary-curr').value;
+        state.manualExchangeRate = parseFloat(document.getElementById('setting-exchange-rate').value) || 1;
+        saveDatabase();
+        renderAll();
+    }
+
+    function submitEntryForm() {
+        const type = document.getElementById('entry-type').value;
+        const date = document.getElementById('entry-date').value;
+        const person = document.getElementById('entry-person').value.trim();
+        const purpose = document.getElementById('entry-purpose').value.trim();
+        const item = document.getElementById('entry-item').value.trim();
+        const amount = parseFloat(document.getElementById('entry-amount').value);
+
+        if (!date || !purpose || isNaN(amount) || amount <= 0) {
+            alert("Please complete all fields with valid information.");
+            return;
+        }
+
+        if (type === 'income' && !person) {
+            alert("Please write the name of the Person sending the amount.");
+            return;
+        }
+        if (type === 'expense' && !item) {
+            alert("Please specify the individual Item name purchased.");
+            return;
+        }
+
+        if (!state.isPro) {
+            if (state.transactions.length >= 80) {
+                alert(state.language === 'bn' ? 
+                    "আপনি বিনামূল্যে ব্যবহারের সর্বোচ্চ সীমা (৮০টি এন্ট্রি) অতিক্রম করেছেন। আনলিমিটেড ট্রানজেকশন যোগ করতে প্রো সংস্করণে আপগ্রেড করুন।" : 
+                    "You have reached the free tier limit of 80 entries. Please upgrade to Pro for unlimited database entries!");
+                openModal('upgrade-modal');
+                return;
+            }
+            if (type === 'income' && person && !state.persons.includes(person) && state.persons.length >= 5) {
+                alert(state.language === 'bn' ?
+                    "বিনামূল্যে সংস্করণে সর্বোচ্চ ৫ জন ব্যক্তি যুক্ত করা যাবে। আনলিমিটেড ব্যক্তি ট্র্যাক করতে প্রো-তে আপগ্রেড করুন।" :
+                    "Free tier is limited to 5 unique Persons. Please upgrade to Pro to track more sources!");
+                openModal('upgrade-modal');
+                return;
+            }
+            if (purpose && !state.purposes.includes(purpose) && state.purposes.length >= 5) {
+                alert(state.language === 'bn' ?
+                    "বিনামূল্যে সংস্করণে সর্বোচ্চ ৫টি ক্যাটাগরি/উদ্দেশ্য যুক্ত করা যাবে। আনলিমিটেড উদ্দেশ্য ট্র্যাক করতে প্রো-তে আপগ্রেড করুন।" :
+                    "Free tier is limited to 5 unique Purposes. Please upgrade to Pro to track more categories!");
+                openModal('upgrade-modal');
+                return;
+            }
+        }
+
+        if (type === 'income' && person && !state.persons.includes(person)) {
+            state.persons.push(person);
+        }
+        if (purpose && !state.purposes.includes(purpose)) {
+            state.purposes.push(purpose);
+        }
+        if (type === 'expense' && item && !state.items.includes(item)) {
+            state.items.push(item);
+        }
+
+        const tx = {
+            id: Date.now(),
+            type,
+            date,
+            person: type === 'income' ? person : '',
+            purpose,
+            item: type === 'expense' ? item : '',
+            amount
+        };
+
+        state.transactions.push(tx);
+        saveDatabase();
+
+        document.getElementById('entry-person').value = '';
+        document.getElementById('entry-purpose').value = '';
+        document.getElementById('entry-item').value = '';
+        document.getElementById('entry-amount').value = '';
+
+        renderAll();
+    }
+
+    function deleteTransaction(id) {
+        if (confirm("Delete this transaction permanently?")) {
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            saveDatabase();
+            renderAll();
+        }
+    }
+
+    function setupInputAutocomplete(inputId, suggestionId, dataKey) {
+        const input = document.getElementById(inputId);
+        const box = document.getElementById(suggestionId);
+
+        input.addEventListener('focus', () => renderSuggestions(input, box, dataKey));
+        input.addEventListener('input', () => renderSuggestions(input, box, dataKey));
+        
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !box.contains(e.target)) {
+                box.classList.add('hidden');
+            }
+        });
+    }
+
+    function renderSuggestions(input, box, key) {
+        const val = input.value.toLowerCase();
+        const source = state[key] || [];
+        const filtered = source.filter(i => i.toLowerCase().includes(val));
+
+        if (filtered.length > 0) {
+            box.innerHTML = '';
+            filtered.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'suggestion-item';
+                row.textContent = item;
+                row.onclick = () => {
+                    input.value = item;
+                    box.classList.add('hidden');
+                };
+                box.appendChild(row);
+            });
+            box.classList.remove('hidden');
+        } else {
+            box.classList.add('hidden');
+        }
+    }
+
+    function switchModalTab(tab) {
+        document.getElementById('modal-tab-intl').classList.remove('active');
+        document.getElementById('modal-tab-bd').classList.remove('active');
+        document.getElementById('modal-content-intl').classList.add('hidden');
+        document.getElementById('modal-content-bd').classList.add('hidden');
+
+        if (tab === 'intl') {
+            document.getElementById('modal-tab-intl').classList.add('active');
+            document.getElementById('modal-content-intl').classList.remove('hidden');
+        } else {
+            document.getElementById('modal-tab-bd').classList.add('active');
+            document.getElementById('modal-content-bd').classList.remove('hidden');
+        }
+    }
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (tab === 'transactions') document.getElementById('tab-btn-tx').classList.add('active');
+        if (tab === 'persons') document.getElementById('tab-btn-person').classList.add('active');
+        if (tab === 'purposes') document.getElementById('tab-btn-purpose').classList.add('active');
+        if (tab === 'items') document.getElementById('tab-btn-item').classList.add('active');
+
+        const optContainer = document.getElementById('specific-filter-container');
+        if (!optContainer) return;
+        optContainer.innerHTML = '';
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        if (tab === 'persons') {
+            let labelText = 'Filter Person', optionText = 'All Persons';
+            if (isBn) { labelText = 'ব্যক্তি সিলেক্ট করুন'; optionText = 'সকল ব্যক্তি'; }
+            else if (isEs) { labelText = 'Filtrar Persona'; optionText = 'Todas las Personas'; }
+            else if (isFr) { labelText = 'Filtrer Personne'; optionText = 'Toutes les Personnes'; }
+
+            let optionsHtml = '<option value="">' + optionText + '</option>';
+            state.persons.forEach(p => {
+                optionsHtml += '<option value="' + p + '">' + p + '</option>';
+            });
+
+            optContainer.innerHTML = '<label>' + labelText + '</label><select id="person-select-filter" onchange="renderAll()">' + optionsHtml + '</select>';
+        } else if (tab === 'purposes') {
+            let labelText = 'Filter Purpose', optionText = 'All Purposes';
+            if (isBn) { labelText = 'উদ্দেশ্য সিলেক্ট করুন'; optionText = 'সকল উদ্দেশ্য'; }
+            else if (isEs) { labelText = 'Filtrar Propósito'; optionText = 'Todos los Propósitos'; }
+            else if (isFr) { labelText = 'Filtrer But'; optionText = 'Tous les Buts'; }
+
+            let optionsHtml = '<option value="">' + optionText + '</option>';
+            state.purposes.forEach(p => {
+                optionsHtml += '<option value="' + p + '">' + p + '</option>';
+            });
+
+            optContainer.innerHTML = '<label>' + labelText + '</label><select id="purpose-select-filter" onchange="renderAll()">' + optionsHtml + '</select>';
+        } else if (tab === 'items') {
+            let labelText = 'Filter by Purpose', optionText = 'All Purposes';
+            if (isBn) { labelText = 'উদ্দেশ্য ফিল্টার'; optionText = 'সকল উদ্দেশ্য'; }
+            else if (isEs) { labelText = 'Filtrar por Propósito'; optionText = 'Todos los Propósitos'; }
+            else if (isFr) { labelText = 'Filtrer par But'; optionText = 'Tous les Buts'; }
+
+            let optionsHtml = '<option value="">' + optionText + '</option>';
+            state.purposes.forEach(p => {
+                optionsHtml += '<option value="' + p + '">' + p + '</option>';
+            });
+
+            optContainer.innerHTML = '<label>' + labelText + '</label><select id="item-purpose-select-filter" onchange="renderAll()">' + optionsHtml + '</select>';
+        }
+        renderAll();
+    }
+
+    function formatVal(num) {
+        const symbol = CURRENCIES[state.primaryCurrency] || '$';
+        return symbol + num.toFixed(2);
+    }
+
+    function formatAltVal(num) {
+        if (state.secondaryEnabled !== 'yes') return '';
+        const rawConverted = num * state.manualExchangeRate;
+        const symbol = CURRENCIES[state.secondaryCurrency] || 'BDT';
+        return symbol + rawConverted.toFixed(2);
+    }
+
+    function renderAll() {
+        const start = document.getElementById('filter-start').value;
+        const end = document.getElementById('filter-end').value;
+
+        let filtered = state.transactions.filter(t => {
+            if (start && t.date < start) return false;
+            if (end && t.date > end) return false;
+            return true;
+        });
+
+        let income = 0, expenses = 0;
+        state.transactions.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else expenses += t.amount;
+        });
+
+        document.getElementById('dash-income').textContent = formatVal(income);
+        document.getElementById('dash-income-alt').textContent = formatAltVal(income);
+
+        document.getElementById('dash-expenses').textContent = formatVal(expenses);
+        document.getElementById('dash-expenses-alt').textContent = formatAltVal(expenses);
+
+        const net = income - expenses;
+        document.getElementById('dash-balance').textContent = formatVal(net);
+        document.getElementById('dash-balance-alt').textContent = formatAltVal(net);
+
+        if (activeTab === 'transactions') renderTransactionsTable(filtered);
+        else if (activeTab === 'persons') renderPersonTable(filtered);
+        else if (activeTab === 'purposes') renderPurposeTable(filtered);
+        else if (activeTab === 'items') renderItemBreakdownTable(filtered);
+    }
+
+    function renderTransactionsTable(list) {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        let h1 = 'Date', h2 = 'Person/Item', h3 = 'Purpose', h4 = 'Type', h5 = 'Amount', h6 = 'Action';
+        if (isBn) { h1 = 'তারিখ'; h2 = 'ব্যক্তি/আইটেম'; h3 = 'উদ্দেশ্য'; h4 = 'ধরণ'; h5 = 'পরিমাণ'; h6 = 'পদক্ষেপ'; }
+        else if (isEs) { h1 = 'Fecha'; h2 = 'Persona/Artículo'; h3 = 'Propósito'; h4 = 'Tipo'; h5 = 'Monto'; h6 = 'Acción'; }
+        else if (isFr) { h1 = 'Date'; h2 = 'Personne/Article'; h3 = 'But'; h4 = 'Type'; h5 = 'Montant'; h6 = 'Action'; }
+
+        header.innerHTML = '<th>' + h1 + '</th><th>' + h2 + '</th><th>' + h3 + '</th><th>' + h4 + '</th><th>' + h5 + '</th><th style="text-align:right;">' + h6 + '</th>';
+
+        const sorted = [...list].sort((a,b) => b.date.localeCompare(a.date));
+        if (sorted.length === 0) {
+            let emptyMsg = 'No logs found.';
+            if (isBn) emptyMsg = 'কোন লেনদেন পাওয়া যায়নি';
+            else if (isEs) emptyMsg = 'No se encontraron registros.';
+            body.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">' + emptyMsg + '</td></tr>';
+            return;
+        }
+
+        body.innerHTML = sorted.map(t => {
+            const contextName = t.type === 'income' ? t.person : '🛒 ' + (t.item || '-');
+            const deleteBtnLabel = isBn ? 'মুছে ফেলুন' : (isEs ? 'Eliminar' : (isFr ? 'Supprimer' : 'Delete'));
+            return `
+                <tr>
+                    <td>${t.date}</td>
+                    <td>${contextName}</td>
+                    <td>${t.purpose}</td>
+                    <td class="${t.type === 'income' ? 'text-success' : 'text-danger'}">${t.type.toUpperCase()}</td>
+                    <td>
+                        <div>${formatVal(t.amount)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">${formatAltVal(t.amount)}</div>
+                    </td>
+                    <td style="text-align:right;">
+                        <button class="btn-neutral" onclick="deleteTransaction(${t.id})" style="padding:4px 8px; font-size:0.8rem;">${deleteBtnLabel}</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderPersonTable(list) {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+        const filterVal = document.getElementById('person-select-filter')?.value;
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        let h1 = 'Person', h2 = 'Received From', h3 = 'Expended To', h4 = 'Net Balance Position';
+        if (isBn) { h1 = 'ব্যক্তির নাম'; h2 = 'প্রাপ্তি'; h3 = 'প্রদান'; h4 = 'অবशिष्ट ব্যালেন্স'; }
+        else if (isEs) { h1 = 'Persona'; h2 = 'Recibido De'; h3 = 'Gastado A'; h4 = 'Saldo Neto'; }
+        else if (isFr) { h1 = 'Personne'; h2 = 'Reçu de'; h3 = 'Dépensé à'; h4 = 'Solde Net'; }
+
+        header.innerHTML = '<th>' + h1 + '</th><th>' + h2 + '</th><th>' + h3 + '</th><th>' + h4 + '</th>';
+
+        let personAggregates = {};
+        state.persons.forEach(p => {
+            personAggregates[p] = { received: 0, spent: 0 };
+        });
+
+        list.forEach(t => {
+            if (t.person && personAggregates[t.person]) {
+                if (t.type === 'income') personAggregates[t.person].received += t.amount;
+                else personAggregates[t.person].spent += t.amount;
+            }
+        });
+
+        const targetList = filterVal ? [filterVal] : state.persons;
+        if (targetList.length === 0) {
+            let emptyMsg = 'No records found.';
+            if (isBn) emptyMsg = 'কোন তথ্য পাওয়া যায়নি';
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">' + emptyMsg + '</td></tr>';
+            return;
+        }
+
+        body.innerHTML = targetList.map(p => {
+            const data = personAggregates[p] || { received: 0, spent: 0 };
+            const net = data.received - data.spent;
+            return `
+                <tr>
+                    <td><strong>${p}</strong></td>
+                    <td class="text-success">${formatVal(data.received)}<br><small style="color:var(--text-muted);">${formatAltVal(data.received)}</small></td>
+                    <td class="text-danger">${formatVal(data.spent)}<br><small style="color:var(--text-muted);">${formatAltVal(data.spent)}</small></td>
+                    <td class="${net >= 0 ? 'text-success' : 'text-danger'}" style="font-weight:600;">
+                        ${formatVal(net)}<br><small>${formatAltVal(net)}</small>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderPurposeTable(list) {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+        const filterVal = document.getElementById('purpose-select-filter')?.value;
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        let h1 = 'Purpose', h2 = 'Allocated Income', h3 = 'Spent Out', h4 = 'Total Roll-forward Balance';
+        if (isBn) { h1 = 'উদ্দেশ্য'; h2 = 'মোট ফান্ড'; h3 = 'মোট খরচ'; h4 = 'অবशिष्ट ব্যালেন্স'; }
+        else if (isEs) { h1 = 'Propósito'; h2 = 'Fondo Asignado'; h3 = 'Gasto Total'; h4 = 'Saldo Pendiente'; }
+        else if (isFr) { h1 = 'But'; h2 = 'Budget Alloué'; h3 = 'Dépense Totale'; h4 = 'Solde Restant'; }
+
+        header.innerHTML = '<th>' + h1 + '</th><th>' + h2 + '</th><th>' + h3 + '</th><th>' + h4 + '</th>';
+
+        let purposeAggregates = {};
+        state.purposes.forEach(pr => {
+            purposeAggregates[pr] = { income: 0, spent: 0 };
+        });
+
+        list.forEach(t => {
+            if (t.purpose && purposeAggregates[t.purpose]) {
+                if (t.type === 'income') purposeAggregates[t.purpose].income += t.amount;
+                else purposeAggregates[t.purpose].spent += t.amount;
+            }
+        });
+
+        const targetList = filterVal ? [filterVal] : state.purposes;
+        if (targetList.length === 0) {
+            let emptyMsg = 'No records found.';
+            if (isBn) emptyMsg = 'কোন তথ্য পাওয়া যায়নি';
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">' + emptyMsg + '</td></tr>';
+            return;
+        }
+
+        body.innerHTML = targetList.map(pr => {
+            const data = purposeAggregates[pr] || { income: 0, spent: 0 };
+            const bal = data.income - data.spent;
+            return `
+                <tr>
+                    <td><strong>${pr}</strong></td>
+                    <td class="text-success">${formatVal(data.income)}<br><small style="color:var(--text-muted);">${formatAltVal(data.income)}</small></td>
+                    <td class="text-danger">${formatVal(data.spent)}<br><small style="color:var(--text-muted);">${formatAltVal(data.spent)}</small></td>
+                    <td class="${bal >= 0 ? 'text-success' : 'text-danger'}" style="font-weight:600;">
+                        ${formatVal(bal)}<br><small>${formatAltVal(bal)}</small>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderItemBreakdownTable(list) {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+        const filterPurpose = document.getElementById('item-purpose-select-filter')?.value;
+
+        const isBn = state.language === 'bn';
+        const isEs = state.language === 'es';
+        const isFr = state.language === 'fr';
+
+        let h1 = 'Individual Item', h2 = 'Parent Purpose', h3 = 'Total Spent Amount';
+        if (isBn) { h1 = 'আইটেমের নাম'; h2 = 'উদ্দেশ্য / ক্যাটাগরি'; h3 = 'মোট অপচয় / খরচ'; }
+        else if (isEs) { h1 = 'Artículo Individual'; h2 = 'Propósito Padre'; h3 = 'Monto Gastado'; }
+        else if (isFr) { h1 = 'Article Individuel'; h2 = 'But Parent'; h3 = 'Montant Dépensé'; }
+
+        header.innerHTML = '<th>' + h1 + '</th><th>' + h2 + '</th><th>' + h3 + '</th>';
+
+        let itemAggregates = {};
+
+        list.forEach(t => {
+            if (t.type === 'expense' && t.item) {
+                if (filterPurpose && t.purpose !== filterPurpose) return;
+
+                const compoundKey = t.item + '||' + t.purpose;
+                if (!itemAggregates[compoundKey]) {
+                    itemAggregates[compoundKey] = 0;
+                }
+                itemAggregates[compoundKey] += t.amount;
+            }
+        });
+
+        const keys = Object.keys(itemAggregates);
+        if (keys.length === 0) {
+            let emptyMsg = 'No itemized expenditures found.';
+            if (isBn) emptyMsg = 'কোন আইটেমের বিবরণী পাওয়া যায়নি';
+            body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">' + emptyMsg + '</td></tr>';
+            return;
+        }
+
+        body.innerHTML = keys.map(key => {
+            const splitData = key.split('||');
+            const itemName = splitData[0];
+            const purposeName = splitData[1];
+            const totalSpent = itemAggregates[key];
+            return `
+                <tr>
+                    <td><strong>${itemName}</strong></td>
+                    <td><span class="badge" style="background:#475569;">${purposeName}</span></td>
+                    <td class="text-danger" style="font-weight:600;">
+                        ${formatVal(totalSpent)}<br><small style="color:var(--text-muted);">${formatAltVal(totalSpent)}</small>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function activateLicense() {
+        const key = document.getElementById('setting-license-key').value.trim();
+        if (key === "PRO-999-ACTIVE") {
+            state.isPro = true;
+            saveDatabase();
+            applyPreferences();
+            closeModal('settings-modal');
+            alert("Upgrade to Pro Complete. Welcome!");
+            renderAll();
+        } else {
+            alert("Key validation failed. Please check input.");
+        }
+    }
+
+    function sendWhatsAppVerification() {
+        const phone = document.getElementById('pay-phone').value.trim();
+        const txnid = document.getElementById('pay-txnid').value.trim();
+        const targetWhatsApp = "8801846434305";
+        
+        const price = selectedLocalTier === 'personal' ? '99 BDT' : '199 BDT';
+        const licenseName = selectedLocalTier === 'personal' ? 'Pro Personal' : 'Business Class';
+
+        const message = `Hello Faisal, I sent ${price} for the Personal Ledger ${licenseName} Upgrade.%0A%0A` +
+                        `Reference/Phone: ${phone}%0A` +
+                        `Transaction ID: ${txnid}%0A%0A` +
+                        `Please send my Pro Activation Key!`;
+                        
+        const url = `https://wa.me/${targetWhatsApp}?text=${message}`;
+        window.open(url, '_blank');
+    }
+
+    // Dynamic Micro-SaaS Cloner (Guarantees exported copy contains zero private database traces)
+    function downloadAppSource() {
+        const clone = document.documentElement.cloneNode(true);
+        
+        // 1. Wipe all dynamically populated DOM tables
+        clone.querySelector('#tableBody').innerHTML = '';
+        clone.querySelector('#tableHeader').innerHTML = '';
+        
+        // 2. Clear visual dashboard metrics back to blank presets
+        clone.querySelector('#dash-balance').textContent = '0.00';
+        clone.querySelector('#dash-balance-alt').textContent = '';
+        clone.querySelector('#dash-income').textContent = '0.00';
+        clone.querySelector('#dash-income-alt').textContent = '';
+        clone.querySelector('#dash-expenses').textContent = '0.00';
+        clone.querySelector('#dash-expenses-alt').textContent = '';
+        
+        // 3. Force clean input states
+        clone.querySelector('#entry-person').value = '';
+        clone.querySelector('#entry-purpose').value = '';
+        clone.querySelector('#entry-item').value = '';
+        clone.querySelector('#entry-amount').value = '';
+        
+        // 4. Wipe active memory of search suggestions
+        clone.querySelector('#person-suggestions').innerHTML = '';
+        clone.querySelector('#person-suggestions').classList.add('hidden');
+        clone.querySelector('#purpose-suggestions').innerHTML = '';
+        clone.querySelector('#purpose-suggestions').classList.add('hidden');
+        clone.querySelector('#item-suggestions').innerHTML = '';
+        clone.querySelector('#item-suggestions').classList.add('hidden');
+
+        const docText = "<!DOCTYPE html>\n<html lang=\"" + state.language + "\">" + clone.innerHTML + "</html>";
+        const blob = new Blob([docText], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "ledger.html";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    }
+
+    function resetDatabaseAction() {
+        const confirmMsg = state.language === 'bn' ? 
+            "আপনি কি নিশ্চিত যে আপনি সমস্ত ডেটা মুছে ফেলতে চান? এটি আর ফেরত আনা যাবে না।" : 
+            "Are you absolutely sure you want to delete ALL database data? This action cannot be undone.";
+        if (confirm(confirmMsg)) {
+            localStorage.removeItem('hybrid_ledger_state_items');
+            localStorage.removeItem('hybrid_ledger_state');
+            location.reload();
+        }
+    }
+</script>
+</body>
+</html>
