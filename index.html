@@ -229,7 +229,7 @@
 
         .suggestion-item:hover { background: var(--border); }
 
-        /* Fail-Proof Modal Display Toggles with Adaptive Scrollbars */
+        /* Absolute Fail-Proof Modal Display Toggle */
         .modal {
             position: fixed;
             top: 0;
@@ -493,7 +493,7 @@
 
 <!-- Modal 2: Monetization & Pro Upgrade Options -->
 <div id="upgrade-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 550px;">
         <h3 style="margin-bottom: 8px;">Upgrade System</h3>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
             Unlocks unlimited account balances, automated daily exchange rates, printing/PDF statement tools, and multi-device cloud synchronization.
@@ -504,14 +504,14 @@
             <button class="tab-btn" id="modal-tab-bd" onclick="switchModalTab('bd')">Bangladesh (bKash/MFS/Bank)</button>
         </div>
 
-        <!-- International Tiers: Side-by-Side Clean Stack -->
+        <!-- International Tiers: Connected to Your Live Storefront -->
         <div id="modal-content-intl">
             <p style="margin-bottom: 16px; font-size: 0.95rem;">Choose your license tier. Payouts are handled securely by Lemon Squeezy.</p>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <a href="https://yourstore.lemonsqueezy.com/checkout-pro" target="_blank" style="text-decoration: none;">
+                <a href="https://webutility.lemonsqueezy.com/checkout/buy/3b10eb57-0ce6-4a5e-a141-1a72c231f066" target="_blank" style="text-decoration: none;">
                     <button class="btn-primary" style="width: 100%;">Upgrade to Pro Personal — $2.99 USD</button>
                 </a>
-                <a href="https://yourstore.lemonsqueezy.com/checkout-corporate" target="_blank" style="text-decoration: none;">
+                <a href="https://webutility.lemonsqueezy.com/checkout/buy/0fb0c857-b180-4077-bbdf-9121d96d6c33" target="_blank" style="text-decoration: none;">
                     <button class="btn-neutral" style="width: 100%; border: 1px solid var(--primary); color: var(--primary);">Upgrade to Business Class — $4.99 USD</button>
                 </a>
             </div>
@@ -1530,35 +1530,15 @@
         }).join('');
     }
 
-    function activateLicense() {
-        const key = document.getElementById('setting-license-key').value.trim();
-        if (key === "PRO-999-ACTIVE") {
-            state.isPro = true;
-            saveDatabase();
-            applyPreferences();
-            closeModal('settings-modal');
-            alert("Upgrade to Pro Complete. Welcome!");
-            renderAll();
-        } else {
-            alert("Key validation failed. Please check input.");
+    function triggerPDFPrint() {
+        if (!state.isPro) {
+            alert(state.language === 'bn' ? 
+                "পিডিএফ এবং প্রিন্ট স্টেটমেন্ট সুবিধাটি শুধুমাত্র প্রো ব্যবহারকারীদের জন্য উপলব্ধ। আপগ্রেড করতে ক্লিক করুন।" : 
+                "Print and PDF Statement export is a Pro feature. Please upgrade to unlock statement printing!");
+            openModal('upgrade-modal');
+            return;
         }
-    }
-
-    function sendWhatsAppVerification() {
-        const phone = document.getElementById('pay-phone').value.trim();
-        const txnid = document.getElementById('pay-txnid').value.trim();
-        const targetWhatsApp = "8801846434305";
-        
-        const price = selectedLocalTier === 'personal' ? '99 BDT' : '199 BDT';
-        const licenseName = selectedLocalTier === 'personal' ? 'Pro Personal' : 'Business Class';
-
-        const message = `Hello Faisal, I sent ${price} for the Personal Ledger ${licenseName} Upgrade.%0A%0A` +
-                        `Reference/Phone: ${phone}%0A` +
-                        `Transaction ID: ${txnid}%0A%0A` +
-                        `Please send my Pro Activation Key!`;
-                        
-        const url = `https://wa.me/${targetWhatsApp}?text=${message}`;
-        window.open(url, '_blank');
+        window.print();
     }
 
     // Dynamic Micro-SaaS Cloner (Guarantees exported copy contains zero private database traces)
