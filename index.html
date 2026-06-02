@@ -229,6 +229,7 @@
 
         .suggestion-item:hover { background: var(--border); }
 
+        /* Absolute Fail-Proof Modal Display Toggle */
         .modal {
             position: fixed;
             top: 0;
@@ -253,8 +254,8 @@
             border-radius: var(--radius);
             width: 90%;
             max-width: 500px;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-height: 85vh; /* Keeps modals to 85% of screen height */
+            overflow-y: auto; /* Adds custom scrollbars if content is cut off */
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
@@ -312,6 +313,7 @@
 <div class="container">
     <header>
         <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- Premium Vector Brand Logo (Renders Sharp Offline) -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 42px; height: 42px;">
                 <rect width="100" height="100" rx="22" fill="#2563eb"/>
                 <rect x="25" y="25" width="50" height="50" rx="8" fill="none" stroke="white" stroke-width="6"/>
@@ -322,4 +324,101 @@
                 <h1 style="display: flex; align-items: center; gap: 8px;">
                     <span data-i18n="app_title">Personal Ledger</span> <span class="badge" id="pro-badge">Free</span>
                 </h1>
-                <p id="network-status" style="color: var(--text-muted); font-size: 0.85
+                <p id="network-status" style="color: var(--text-muted); font-size: 0.85rem;">Checking network status...</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <select id="header-lang-selector" onchange="changeLanguage(this.value)" style="width: auto; padding: 4px 8px; font-size: 0.85rem;">
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="hi">हिन्दी</option>
+                <option value="zh">中文</option>
+            </select>
+            <button class="btn-neutral" onclick="downloadAppSource()" style="font-size: 0.85rem; padding: 4px 8px;">💾 Download File</button>
+            <button class="btn-neutral" onclick="openModal('settings-modal')" style="font-size: 0.85rem; padding: 4px 8px;">⚙️ Settings</button>
+            <button class="btn-primary" id="upgrade-nav-btn" onclick="openModal('upgrade-modal')" style="font-size: 0.85rem; padding: 4px 8px;">⭐ Go Pro</button>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title" data-i18n="net_balance">Net Balance</div>
+            <div class="card-value text-primary" id="dash-balance">0.00</div>
+            <div class="secondary-value" id="dash-balance-alt">0.00</div>
+        </div>
+        <div class="card">
+            <div class="card-title" data-i18n="total_income">Total Income</div>
+            <div class="card-value text-success" id="dash-income">0.00</div>
+            <div class="secondary-value" id="dash-income-alt">0.00</div>
+        </div>
+        <div class="card">
+            <div class="card-title" data-i18n="total_expenses">Total Expenses</div>
+            <div class="card-value text-danger" id="dash-expenses">0.00</div>
+            <div class="secondary-value" id="dash-expenses-alt">0.00</div>
+        </div>
+    </div>
+
+    <div class="workspace-grid">
+        <!-- Input Form Panel -->
+        <div class="card">
+            <h3 style="margin-bottom: 16px;" data-i18n="new_entry">New Entry</h3>
+            <form onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label data-i18n="date">Date</label>
+                    <input type="date" id="entry-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="entry_type">Entry Type</label>
+                    <select id="entry-type" onchange="toggleFormFields(this.value)">
+                        <option value="expense" data-i18n="spend">Spend (Debit)</option>
+                        <option value="income" data-i18n="receive">Receive (Credit)</option>
+                    </select>
+                </div>
+
+                <div class="form-group id-person-group hidden">
+                    <label data-i18n="person">Person (Source)</label>
+                    <input type="text" id="entry-person" autocomplete="off" placeholder="Type or select name">
+                    <div id="person-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="purpose">Purpose / Category</label>
+                    <input type="text" id="entry-purpose" required autocomplete="off" placeholder="Type or select purpose">
+                    <div id="purpose-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group id-item-group">
+                    <label data-i18n="item">Spent Item Name</label>
+                    <input type="text" id="entry-item" autocomplete="off" placeholder="e.g., Rice, Fish, Soap">
+                    <div id="item-suggestions" class="suggestions-list hidden"></div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="amount">Amount</label>
+                    <input type="number" id="entry-amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+
+                <button type="button" class="btn-primary" style="width: 100%;" onclick="submitEntryForm()" data-i18n="save_entry">Save Entry</button>
+            </form>
+        </div>
+
+        <!-- Analytical Tables Panel -->
+        <div class="card">
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-tx" onclick="switchTab('transactions')" data-i18n="all_tx">All Transactions</button>
+                <button class="tab-btn" id="tab-btn-person" onclick="switchTab('persons')" data-i18n="by_person">By Person</button>
+                <button class="tab-btn" id="tab-btn-purpose" onclick="switchTab('purposes')" data-i18n="by_purpose">By Purpose</button>
+                <button class="tab-btn" id="tab-btn-item" onclick="switchTab('items')" data-i18n="by_item">By Item</button>
+            </div>
+
+            <!-- Dynamic Filter Bar -->
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                    <label data-i18n="start_date">Start Date</label>
+                    <input type="date" id="filter-start" onchange="renderAll()">
+                </div>
+                <div style="flex: 1; min-wid
