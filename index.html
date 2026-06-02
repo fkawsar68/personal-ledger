@@ -1,12 +1,325 @@
-<!-- Checkout URLs mapping directly to your webutility store keys -->
-<div id="modal-content-intl">
-    <p style="margin-bottom: 16px; font-size: 0.95rem;">Choose your license tier. Payouts are handled securely by Lemon Squeezy.</p>
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="https://webutility.lemonsqueezy.com/checkout/buy/3b10eb57-0ce6-4a5e-a141-1a72c231f066" target="_blank" style="text-decoration: none;">
-            <button class="btn-primary" style="width: 100%;">Upgrade to Pro Personal — $2.99 USD</button>
-        </a>
-        <a href="https://webutility.lemonsqueezy.com/checkout/buy/0fb0c857-b180-4077-bbdf-9121d96d6c33" target="_blank" style="text-decoration: none;">
-            <button class="btn-neutral" style="width: 100%; border: 1px solid var(--primary); color: var(--primary);">Upgrade to Business Class — $4.99 USD</button>
-        </a>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Personal Ledger</title>
+    <!-- Native Vector Favicon (Displays in Browser Tab Offline) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Crect x='25' y='25' width='50' height='50' rx='8' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M35 38h30M35 50h30M35 62h20' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='60' cy='62' r='5' fill='%2316a34a'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --modal-overlay: rgba(15, 23, 42, 0.4);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --primary: #3b82f6;
+                --success: #22c55e;
+                --danger: #ef4444;
+                --border: #334155;
+                --modal-overlay: rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .secondary-value {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .workspace-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-neutral { background: var(--border); color: var(--text-main); }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .table-container { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover { background: var(--border); }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex !important;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .hidden { display: none !important; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-primary { color: var(--primary); }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+            }
+            header, 
+            .workspace-grid > .card:first-child, 
+            .tab-nav, 
+            #specific-filter-container, 
+            #filter-start, 
+            #filter-end,
+            label,
+            button,
+            .modal {
+                display: none !important;
+            }
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .dashboard-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                margin-bottom: 20px !important;
+            }
+            .card {
+                border: 1px solid #000000 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+            .workspace-grid {
+                grid-template-columns: 1fr !important;
+            }
+            table {
+                width: 100% !important;
+                border: 1px solid #000000 !important;
+            }
+            th, td {
+                border-bottom: 1px solid #000000 !important;
+                color: #000000 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 42px; height: 42px;">
+                <rect width="100" height="100" rx="22" fill="#2563eb"/>
+                <rect x="25" y="25" width="50" height="50" rx="8" fill="none" stroke="white" stroke-width="6"/>
+                <path d="M35 38h30M35 50h30M35 62h20" stroke="white" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="60" cy="62" r="5" fill="#16a34a"/>
+            </svg>
+            <div>
+                <h1 style="display: flex; align-items: center; gap: 8px;">
+                    <span data-i18n="app_title">Personal Ledger</span> <span class="badge" id="pro-badge">Free</span>
+                </h1>
+                <p id="network-status" style="color: var(--text-muted); font-size: 0.85
